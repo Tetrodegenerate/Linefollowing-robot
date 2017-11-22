@@ -1,3 +1,4 @@
+// ---- Comment from pololu library ----
 // Returns an estimated position of the robot with respect to a line.
 // The estimate is made using a weighted average of the sensor indices
 // multiplied by 1000, so that a return value of 0 indicates that
@@ -20,8 +21,8 @@ long linePosition(Pin *sensor_number)
   long l, r;
   unsigned long weight[8] = {6000, 1120, 335, 138, 72, 45, 32, 25};   //добавить умножение на 1000
 
-  for (unsigned char i = 0, j = 8; i < 8; i++, j--) {
-    unsigned char value = sensor_number[i].getValue();
+  for (byte i = 0, j = 8; i < 8; i++, j--) {
+    byte value = sensor_number[i].getValue();
     numerator += value * j * 1000 * weight[i];
     denominator += value * weight[i];
   }
@@ -29,8 +30,8 @@ long linePosition(Pin *sensor_number)
   else l = 0;
 
   numerator = 0; denominator = 0;
-  for (unsigned char i = 0, j = 8; i < 8; i++, j--) {
-    unsigned char value = sensor_number[15 - i].getValue();
+  for (byte i = 0, j = 8; i < 8; i++, j--) {
+    byte value = sensor_number[15 - i].getValue();
     numerator += value * j * 1000 * weight[i];
     denominator += value * weight[i];
   }
