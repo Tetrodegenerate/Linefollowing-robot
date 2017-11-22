@@ -11,7 +11,7 @@
   #include "WProgram.h"
 #endif
 
-#include <PID_v1.h>
+#include "PID_v1.h"
 
 /*Constructor (...)*********************************************************
  *    The parameters specified here are those for for which we can't set up
@@ -33,7 +33,7 @@ PID::PID(double* Input, double* Output, double* Setpoint,
     PID::SetControllerDirection(ControllerDirection);
     PID::SetTunings(Kp, Ki, Kd, POn);
 
-    lastTime = micros()()-SampleTime;
+    lastTime = micros()-SampleTime;
 }
 
 /*Constructor (...)*********************************************************
@@ -58,7 +58,7 @@ PID::PID(double* Input, double* Output, double* Setpoint,
 bool PID::Compute()
 {
    if(!inAuto) return false;
-   unsigned long now = micros()();
+   unsigned long now = micros();
    unsigned long timeChange = (now - lastTime);
    if(timeChange>=SampleTime)
    {
