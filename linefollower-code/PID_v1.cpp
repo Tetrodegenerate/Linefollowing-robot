@@ -1,10 +1,8 @@
 /**********************************************************************************************
- * Arduino PID Library - Version 1.2.2
+ * Arduino PID Library - Version 1.2.1
  * by Brett Beauregard <br3ttb@gmail.com> brettbeauregard.com
  *
  * This Library is licensed under the MIT License
- *
- * v1.2.2 Removed sample time
  **********************************************************************************************/
 
 #if ARDUINO >= 100
@@ -30,8 +28,12 @@ PID::PID(double* Input, double* Output, double* Setpoint,
     PID::SetOutputLimits(0, 255);				//default output limit corresponds to
 												//the arduino pwm limits
 
+    SampleTime = 100;							//default Controller Sample Time is 0.1 seconds
+
     PID::SetControllerDirection(ControllerDirection);
     PID::SetTunings(Kp, Ki, Kd, POn);
+
+    lastTime = micros()-SampleTime;
 }
 
 /*Constructor (...)*********************************************************
@@ -55,36 +57,41 @@ PID::PID(double* Input, double* Output, double* Setpoint,
  **********************************************************************************/
 bool PID::Compute()
 {
-	if(!inAuto) return false;
+   if(!inAuto) return false;
+   unsigned long now = micros();
+   unsigned long timeChange = (now - lastTime);
+   if(timeChange>=SampleTime)
+   {
+      /*Compute all the working error variables*/
+      double input = *myInput;
+      double error = *mySetpoint - input;
+      double dInput = (input - lastInput);
+      outputSum+= (ki * error);
 
-	/*Compute all the working error variables*/
-	double input = *myInput;
-	double error = *mySetpoint - input;
-	double dInput = (input - lastInput);
-	outputSum+= (ki * error);
+      /*Add Proportional on Measurement, if P_ON_M is specified*/
+      if(!pOnE) outputSum-= kp * dInput;
 
-	/*Add Proportional on Measurement, if P_ON_M is specified*/
-	if(!pOnE) outputSum-= kp * dInput;
+      if(outputSum > outMax) outputSum= outMax;
+      else if(outputSum < outMin) outputSum= outMin;
 
-	if(outputSum > outMax) outputSum= outMax;
-	else if(outputSum < outMin) outputSum= outMin;
+      /*Add Proportional on Error, if P_ON_E is specified*/
+	   double output;
+      if(pOnE) output = kp * error;
+      else output = 0;
 
-	/*Add Proportional on Error, if P_ON_E is specified*/
-	double output;
-	if(pOnE) output = kp * error;
-	else output = 0;
+      /*Compute Rest of PID Output*/
+      output += outputSum - kd * dInput;
 
-	/*Compute Rest of PID Output*/
-	output += outputSum - kd * dInput;
+	    if(output > outMax) output = outMax;
+      else if(output < outMin) output = outMin;
+	    *myOutput = output;
 
-	if(output > outMax) output = outMax;
-	else if(output < outMin) output = outMin;
-	*myOutput = output;
-
-	/*Remember some variables for next time*/
-	lastInput = input;
-
-	return true;
+      /*Remember some variables for next time*/
+      lastInput = input;
+      lastTime = now;
+	    return true;
+   }
+   else return false;
 }
 
 /* SetTunings(...)*************************************************************
@@ -101,11 +108,12 @@ void PID::SetTunings(double Kp, double Ki, double Kd, int POn)
 
    dispKp = Kp; dispKi = Ki; dispKd = Kd;
 
+   double SampleTimeInSec = ((double)SampleTime)/1000;
    kp = Kp;
-   ki = Ki;
-   kd = Kd;
+   ki = Ki * SampleTimeInSec;
+   kd = Kd / SampleTimeInSec;
 
-  if(controllerDirection == REVERSE)
+  if(controllerDirection ==REVERSE)
    {
       kp = (0 - kp);
       ki = (0 - ki);
@@ -118,6 +126,21 @@ void PID::SetTunings(double Kp, double Ki, double Kd, int POn)
  ******************************************************************************/
 void PID::SetTunings(double Kp, double Ki, double Kd){
     SetTunings(Kp, Ki, Kd, pOn); 
+}
+
+/* SetSampleTime(...) *********************************************************
+ * sets the period, in Microseconds, at which the calculation is performed
+ ******************************************************************************/
+void PID::SetSampleTime(int NewSampleTime)
+{
+   if (NewSampleTime > 0)
+   {
+      double ratio  = (double)NewSampleTime
+                      / (double)SampleTime;
+      ki *= ratio;
+      kd /= ratio;
+      SampleTime = (unsigned long)NewSampleTime;
+   }
 }
 
 /* SetOutputLimits(...)****************************************************
