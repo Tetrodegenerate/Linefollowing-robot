@@ -1,5 +1,5 @@
 /**********************************************************************************************
-   Linefollower - Version 2.0
+   Linefollower - Version 2.1
    by Oleg Samovarov, 4a4ik
 
    This code is licensed under the MIT License
@@ -12,7 +12,7 @@
 
 
 // Variables for PID regulator
-double Output, Setpoint = 0, Input = 0;
+double Output = 0, Setpoint = 0, Input = 0;
 //On 16MHz micros() has a resolution of four microseconds
 int sampleTime = 2000; // in us
 // PID coefficient
@@ -132,11 +132,6 @@ void exeCmd() {
       myPID.SetTunings(Kp, Ki, Kd);
       okLog();
       break;
-    case 't': //set sample time
-      sampleTime = atoi(cmd + 1);
-      myPID.SetSampleTime(sampleTime);
-      okLog();
-      break;
     case 'w': //go forward
       motorSpeed(30, 30);
       okLog();
@@ -251,7 +246,6 @@ void loadSettings() {
   max_speed = EEPROM.readInt(adr);
 
   myPID.SetTunings(Kp, Ki, Kd);
-  myPID.SetSampleTime(sampleTime);
   myPID.SetOutputLimits(-max_speed, max_speed);
   
   printSettings();
