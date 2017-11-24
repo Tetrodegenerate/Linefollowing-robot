@@ -69,7 +69,6 @@ class PID
     double kd;                  // * (D)erivative Tuning Parameter
 
 	int controllerDirection;
-	int pOn;
 
     double *myInput;              // * Pointers to the Input, Output, and Setpoint variables
     double *myOutput;             //   This creates a hard link between the variables and the 
@@ -77,11 +76,9 @@ class PID
                                   //   what these values are.  with pointers we'll just know.
 			  
 	unsigned long lastTime;
-	double outputSum, lastInput;
+	double errSum, lastError;
 
-	unsigned long SampleTime;
 	double outMin, outMax;
 	bool inAuto, pOnE;
 };
 #endif
-
