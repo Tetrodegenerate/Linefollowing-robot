@@ -19,8 +19,8 @@ int sampleTime = 2000; // in us
 double Kp = 0.06, Kd = 0.11, Ki = 0.;
 //Specify the links and initial tuning parameters
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
-// nominal and maximum speed (and controller maximum output)
-int nom_speed = 50; int max_speed = 100;
+// nominal and controller maximum output (== maximum speed)
+int nom_speed = 50; int max_output = 100;
 
 // Digital sensor array
 Pin sens[] = {4, 3, 2, A5, A4, A3, A2, A1, A0, 13, 11, 8, 7, 12, 6, 5};
@@ -48,7 +48,7 @@ void setup() {
   button.setInput(); battery.setInput();
 
   //turn the PID on
-  myPID.SetOutputLimits(-max_speed, max_speed);
+  myPID.SetOutputLimits(-max_output, max_output);
   myPID.SetMode(AUTOMATIC);
   //load settings from EEPROM
   loadSettings();
@@ -65,10 +65,7 @@ void loop() {
   Input = (double)linePosition(sens);
   myPID.Compute();
   speedM1 = nom_speed - Output; speedM2 = nom_speed + Output;
-  // ограничение максимальной скорости и исключение работы мотора в обратном направлении
-  speedM1 = constrain(speedM1, 0, max_speed);
-  speedM2 = constrain(speedM2, 0, max_speed);
-  if (start) motorSpeed(speedM1, speedM2);
+  if(start) motorSpeed(speedM1, speedM2);
 
 
   /*  check if data has been sent from the computer: */
@@ -113,8 +110,8 @@ void exeCmd() {
       okLog();
       break;
     case 'm': //set maximum speed and output
-      max_speed = atoi(cmd + 1);
-      myPID.SetOutputLimits(-max_speed, max_speed);
+      max_output = atoi(cmd + 1);
+      myPID.SetOutputLimits(-max_output, max_output);
       okLog();
       break;
     case 'p': //set Kp
@@ -227,7 +224,7 @@ void saveSettings() {
   adr += sizeof(int);
   EEPROM.updateInt(adr, nom_speed);
   adr += sizeof(int);
-  EEPROM.updateInt(adr, max_speed);
+  EEPROM.updateInt(adr, max_output);
 }
 
 void loadSettings() {
@@ -243,11 +240,11 @@ void loadSettings() {
   adr += sizeof(int);
   nom_speed = EEPROM.readInt(adr);
   adr += sizeof(int);
-  max_speed = EEPROM.readInt(adr);
+  max_output = EEPROM.readInt(adr);
 
   myPID.SetTunings(Kp, Ki, Kd);
-  myPID.SetOutputLimits(-max_speed, max_speed);
-  
+  myPID.SetOutputLimits(-max_output, max_output);
+
   printSettings();
 }
 
@@ -263,11 +260,11 @@ void printSettings() {
   //printout saved settings
   str = "q Kp = " + String(Kp, 4) + "  Kd = " + String(Kd, 4) + "  Ki = " + String(Ki, 6) +
         + "  Sample time = " + String(sampleTime) + "  Nominal speed = " + String(nom_speed) +
-        + "  Maximum speed = " + String(max_speed) + '\n';
+        + "  Maximum speed = " + String(max_output) + '\n';
   //set sliders to saved position
   str += "p " + String(Kp, 4) + "\nd " + String(Kd, 4) + "\ni " + String(Ki, 6) +
          + "\nt " + String(sampleTime) + "\nn " + String(nom_speed) +
-         + "\nm " + String(max_speed) + '\n';
+         + "\nm " + String(max_output) + '\n';
 
   Serial.print(str);
   //wait for serial transmission to end

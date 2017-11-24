@@ -19,7 +19,7 @@ long linePosition(Pin *sensor_number)
   unsigned long denominator = 0;
   static long  x;
   long l, r;
-  unsigned long weight[8] = {6000, 1120, 335, 138, 72, 45, 32, 25};   //добавить умножение на 1000
+  unsigned long weight[8] = {128, 64, 32, 16, 8, 4, 2, 1};   //добавить умножение на 1000
 
   for (byte i = 0, j = 8; i < 8; i++, j--) {
     byte value = sensor_number[i].getValue();

@@ -13,18 +13,10 @@ void motorInit() {
 }
 
 void motorSpeed(int speedA, int speedB) {
-  //speedA = constrain(speedA, 0, 255);
-  //speedB = constrain(speedB, 0, 255);
+  // ограничение максимальной скорости и исключение работы мотора в обратном направлении
+  speedA = constrain(speedA, 0, 255);
+  speedB = constrain(speedB, 0, 255);
+
   pwmA.setDutyCycle(speedA);
   pwmB.setDutyCycle(speedB);
 }
-
-//#ifdef DEBUG
-//void clearAndHome()
-//{
-//  Serial.write(27);
-//  Serial.print("[2J"); // clear screen
-//  Serial.write(27); // ESC
-//  Serial.print("[H"); // cursor to home
-//}
-//#endif
