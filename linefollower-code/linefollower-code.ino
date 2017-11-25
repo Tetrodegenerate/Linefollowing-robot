@@ -1,5 +1,5 @@
 /**********************************************************************************************
-   Linefollower - Version 2.1
+   Linefollower - Version 2.2
    by Oleg Samovarov, 4a4ik
 
    This code is licensed under the MIT License
@@ -65,7 +65,7 @@ void loop() {
   Input = (double)linePosition(sens);
   myPID.Compute();
   speedM1 = nom_speed - Output; speedM2 = nom_speed + Output;
-  if(start) motorSpeed(speedM1, speedM2);
+  if (start) motorSpeed(speedM1, speedM2);
 
 
   /*  check if data has been sent from the computer: */
@@ -101,6 +101,7 @@ void exeCmd() {
       timer.disable(timerN[1]);
       timer.disable(timerN[2]);
       timer.disable(timerN[3]);
+      timer.disable(timerN[4]);
       debugEnable = false;
       loopTimeCheck = false;
       okLog();
@@ -130,15 +131,15 @@ void exeCmd() {
       okLog();
       break;
     case 'w': //go forward
-      motorSpeed(30, 30);
+      motorSpeed(50, 50);
       okLog();
       break;
     case 'r': //go right
-      motorSpeed(30, 0);
+      motorSpeed(50, 0);
       okLog();
       break;
     case 'a': //go left
-      motorSpeed(0, 30);
+      motorSpeed(0, 50);
       okLog();
       break;
     case 's': //save settings to EEPROM
@@ -153,6 +154,7 @@ void exeCmd() {
       debugEnable = true;
       timerN[0] = timer.setInterval(500, heartBeat);
       timerN[1] = timer.setInterval(700, batteryVoltage);
+      timerN[4] = timer.setInterval(10, errorDifference);
       okLog();
       break;
     case 'f': //disable debug output
@@ -277,4 +279,10 @@ void okLog() {
   ok[4] = (ok[4] == '-') ? '+' : '-';
 
   Serial.print(ok);
+}
+
+void errorDifference() {
+  String str;
+  str = "c " + String(myPID.GetErrDiff(), 1) + '\n';
+  Serial.print(str);
 }

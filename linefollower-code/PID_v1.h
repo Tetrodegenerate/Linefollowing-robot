@@ -46,7 +46,8 @@ class PID
     double GetKi();						  //  they were created mainly for the pid front-end,
     double GetKd();						  // where it's important to know what is actually
     int GetMode();						  //  inside the PID.
-    int GetDirection();					  //
+    int GetDirection();					//
+    double GetErrDiff();
 
   private:
     void Initialize();
@@ -67,7 +68,7 @@ class PID
     //   what these values are.  with pointers we'll just know.
 
     unsigned long lastTime;
-    double errSum, lastError;
+    double errSum, lastError, errDiff;
 
     double outMin, outMax;
     bool inAuto;

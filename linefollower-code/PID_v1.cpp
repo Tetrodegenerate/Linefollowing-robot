@@ -1,6 +1,7 @@
 /**********************************************************************************************
- * PID Library - Version 1.0
- * based on Arduino PID Library by Brett Beauregard
+   PID Library - Version 1.1
+   v1.1 added D part hold for further tests
+   based on Arduino PID Library by Brett Beauregard
  **********************************************************************************************/
 
 #if ARDUINO >= 100
@@ -45,21 +46,42 @@ bool PID::Compute()
   /*Compute all the working error variables*/
   double input = *myInput;   // Get input data
   double error = *mySetpoint - input;    // Compute error = Current value - Needed value
-  double errDif = (error - lastError);   // Compute error difference rof D part of PID
 
-  errSum += error;                       // Add error to
+  errDiff = error - lastError;   // Compute error difference rof D part of PID
+  errSum += error;              // Add error for integral part
+  lastError = error;            // Save error value for Differential part of the PID
+
+
+  // Variables for Inertion of the D part of the regulator
+  const int DTimeHold = 1000;  //us=DTimeHold*loopTime How much D part is working after being triggered
+  static double errDiffSaved;
+  static int tick = 0;
+
+  //trying to account motor slow react to D part
+  //  if (abs(errDiff) > 0) {
+  //    tick = DTimeHold;
+  //    errDiffSaved = errDiff;
+  //  }
+  //  else if (tick != 0) {
+  //    errDiff = errDiffSaved;
+  //    tick--;
+  //  }
+  if (errDiff != 0)
+    errDiffSaved = errDiff;
+  else
+    errDiff = errDiffSaved;
+
+
   if (errSum > outMax) errSum = outMax;
   else if (errSum < outMin) errSum = outMin;
 
   /*Compute PID Output*/
-  double output = kp * error + ki * errSum + kd * errDif;
+  double output = kp * error + ki * errSum + kd * errDiff;
 
   if (output > outMax) output = outMax;
   else if (output < outMin) output = outMin;
 
   *myOutput = output;
-
-  lastError = error;   // Save error value for Differential part of the PID
 
   return true;
 }
@@ -166,4 +188,7 @@ int PID::GetMode() {
 }
 int PID::GetDirection() {
   return controllerDirection;
+}
+double PID::GetErrDiff() {
+  return  errDiff;
 }
