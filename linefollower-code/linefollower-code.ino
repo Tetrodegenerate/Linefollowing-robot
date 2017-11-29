@@ -5,7 +5,7 @@
    This code is licensed under the MIT License
  **********************************************************************************************/
 //  COM порт для bluetooth соединения, используется исходящий!
-#include "PID_v1.h"       //changed millis to micros
+#include "PID.h"
 #include "SimpleTimer.h"  //https://github.com/infomaniac50/SimpleTimer
 #include <Pin.h>
 #include <EEPROMex.h>
